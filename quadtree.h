@@ -31,5 +31,7 @@ bool partition_contains(struct Partition* part, struct Point* pt);
 
 struct QuadTree* create_quadtree(struct Partition* boundary, int capacity);
 void insert_quadtree(struct QuadTree* q, struct Point* p);
+void remove_quadtree(struct QuadTree* q, struct Point* p);
 void subdivide_quadtree(struct QuadTree* q);
+bool contains_quadtree(struct QuadTree* q, struct Point* p);
 #endif
