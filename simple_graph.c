@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include "vector.h"
 #include "quadtree.h"
 void draw_bounding_boxes(struct QuadTree* q) {
     if (q == NULL) { return; }
@@ -52,6 +53,10 @@ void draw_rec(struct QuadTree* q) {
 
 void draw(struct QuadTree* q) {
   //clear();
+  struct Partition* test_part = create_partition(create_point(COLS / 2, LINES / 2), 10, 10);
+  struct Vector* v = query_quadtree(q, test_part);
+
+  mvprintw(0, 0, "%d", v->members);
   draw_rec(q);
 }
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ncurses.h> // todo remove this
+#include "vector.h"
 #include "quadtree.h"
 
 
@@ -28,7 +29,7 @@ struct Partition* create_partition(struct Point* pt, int width, int height) {
   return p;
 }
 
-bool partition_contains(struct Partition* part, struct Point* pt) {
+bool contains_partition(struct Partition* part, struct Point* pt) {
   // used to make sure (width||height)/2 != 0 but 1
   int ref_width = part->width;
   if (ref_width == 1) ref_width += 1;
@@ -58,7 +59,7 @@ struct QuadTree* create_quadtree(struct Partition* boundary, int capacity) {
 }
 
 void insert_quadtree(struct QuadTree* q, struct Point* p) {
-  if (!partition_contains(q->boundary, p) || contains_quadtree(q, p)) return;
+  if (!contains_partition(q->boundary, p) || contains_quadtree(q, p)) return;
   if (q->members < q->capacity) {
     q->points[q->members] = p;
     q->members += 1;
@@ -66,24 +67,14 @@ void insert_quadtree(struct QuadTree* q, struct Point* p) {
     if (!q->ne || !q->nw || !q->se || !q->sw) {
       subdivide_quadtree(q);
     }
-    if (partition_contains(q->ne->boundary, p)) {
+    if (contains_partition(q->ne->boundary, p)) {
       insert_quadtree(q->ne, p);
-    } else if (partition_contains(q->nw->boundary, p)) {
+    } else if (contains_partition(q->nw->boundary, p)) {
       insert_quadtree(q->nw, p);
-    } else if (partition_contains(q->se->boundary, p)) {
+    } else if (contains_partition(q->se->boundary, p)) {
       insert_quadtree(q->se, p);
-    } else if (partition_contains(q->sw->boundary, p)) {
+    } else if (contains_partition(q->sw->boundary, p)) {
       insert_quadtree(q->sw, p);
-    } else {
-      move(0, 0);
-      clrtoeol();
-      printw("COLS: %d LINES: %d\n", COLS, LINES);
-      printw("trying to add (%d %d). NE: (%d %d), %d %d, NW: (%d %d), %d %d SE: (%d %d), %d %d SW: (%d %d), %d %d \n", 
-             p->x, p->y, q->ne->boundary->center->x, q->ne->boundary->center->y, q->ne->boundary->width, q->ne->boundary->height,
-             q->nw->boundary->center->x, q->nw->boundary->center->y, q->nw->boundary->width, q->nw->boundary->height, 
-             q->se->boundary->center->x, q->se->boundary->center->y, q->se->boundary->width, q->se->boundary->height, 
-             q->sw->boundary->center->x, q->sw->boundary->center->y, q->sw->boundary->width, q->sw->boundary->height);
-      getch();
     } 
   }
 }
@@ -120,7 +111,7 @@ void subdivide_quadtree(struct QuadTree* q) {
 }
 
 bool contains_quadtree(struct QuadTree* q, struct Point* p) {
-  if (partition_contains(q->boundary, p)) {
+  if (contains_partition(q->boundary, p)) {
     for (int i = 0; i < q->members; i += 1) {
       struct Point* curr_pt = q->points[i];
       if (curr_pt->x == p->x && curr_pt->y == p->y) return true;
@@ -134,7 +125,7 @@ bool contains_quadtree(struct QuadTree* q, struct Point* p) {
 }
 
 void remove_quadtree(struct QuadTree* q, struct Point* p) {
-  if (partition_contains(q->boundary, p)) {
+  if (contains_partition(q->boundary, p)) {
     int pt_idx = -1;
     for (int i = 0; i < q->members; i += 1) {
       struct Point* curr_pt = q->points[i];
@@ -157,3 +148,30 @@ void remove_quadtree(struct QuadTree* q, struct Point* p) {
     }
   }
 }
+
+struct Vector* query_quadtree(struct QuadTree* q, struct Partition* p) {
+  struct Vector* v = create_vector();
+
+  if (!intersects_partition(q->boundary, p)) return NULL;
+  for (int i = 0; i < q->members; i += 1) {
+    if (contains_partition(p, q->points[i])) {
+      vector_add(v, q->points[i]);
+    }
+  }
+  if (q->ne != NULL) {
+    vector_merge(v, query_quadtree(q->ne, p));
+    vector_merge(v, query_quadtree(q->nw, p));
+    vector_merge(v, query_quadtree(q->se, p));
+    vector_merge(v, query_quadtree(q->sw, p));
+  }
+
+  return v;
+}
+
+bool intersects_partition(struct Partition* a, struct Partition* b) {
+  return !(b->center->x - b->width / 2 > a->center->x + a->width / 2 ||
+            b->center->x + b->width / 2 < a->center->x - a->width / 2 ||
+            b->center->y - b->height / 2 > a->center->y + a->height / 2 ||
+            b->center->y + b->height / 2 < a->center->y - a->height / 2);
+}
+
