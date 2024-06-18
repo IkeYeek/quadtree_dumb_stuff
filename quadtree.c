@@ -32,9 +32,9 @@ struct Partition* create_partition(struct Point* pt, int width, int height) {
 bool contains_partition(struct Partition* part, struct Point* pt) {
   // used to make sure (width||height)/2 != 0 but 1
   int ref_width = part->width;
-  if (ref_width == 1) ref_width += 1;
+  if (ref_width & 1) ref_width += 1;
   int ref_height = part->height;
-  if(ref_height == 1) ref_height += 1;
+  if(ref_height & 1) ref_height += 1;
 
   return pt->x >= part->center->x - ref_width / 2 &&
     pt->x <= part->center->x + ref_width / 2 &&
@@ -75,7 +75,17 @@ void insert_quadtree(struct QuadTree* q, struct Point* p) {
       insert_quadtree(q->se, p);
     } else if (contains_partition(q->sw->boundary, p)) {
       insert_quadtree(q->sw, p);
-    } 
+    } // else {
+    //   move(0, 0);
+    //   clrtoeol();
+    //   printw("COLS: %d LINES: %d\n", COLS, LINES);
+    //   printw("trying to add (%d %d). NE: (%d %d), %d %d, NW: (%d %d), %d %d SE: (%d %d), %d %d SW: (%d %d), %d %d \n", 
+    //          p->x, p->y, q->ne->boundary->center->x, q->ne->boundary->center->y, q->ne->boundary->width, q->ne->boundary->height,
+    //          q->nw->boundary->center->x, q->nw->boundary->center->y, q->nw->boundary->width, q->nw->boundary->height, 
+    //          q->se->boundary->center->x, q->se->boundary->center->y, q->se->boundary->width, q->se->boundary->height, 
+    //          q->sw->boundary->center->x, q->sw->boundary->center->y, q->sw->boundary->width, q->sw->boundary->height);
+    //   getch();
+    // } 
   }
 }
 
@@ -167,11 +177,20 @@ struct Vector* query_quadtree(struct QuadTree* q, struct Partition* p) {
 
   return v;
 }
-
 bool intersects_partition(struct Partition* a, struct Partition* b) {
-  return !(b->center->x - b->width / 2 > a->center->x + a->width / 2 ||
-            b->center->x + b->width / 2 < a->center->x - a->width / 2 ||
-            b->center->y - b->height / 2 > a->center->y + a->height / 2 ||
-            b->center->y + b->height / 2 < a->center->y - a->height / 2);
+  int a_ref_width = a->width;
+  if (a_ref_width & 1) a_ref_width += 1;
+  int a_ref_height = a->height;
+  if (a_ref_height & 1) a_ref_height += 1;
+
+  int b_ref_width = b->width;
+  if (b_ref_width & 1) b_ref_width += 1;
+  int b_ref_height = b->height;
+  if (b_ref_height & 1) b_ref_height += 1;
+
+  return !(b->center->x - b_ref_width / 2 > a->center->x + a_ref_width / 2 ||
+           b->center->x + b_ref_width / 2 < a->center->x - a_ref_width / 2 ||
+           b->center->y - b_ref_height / 2 > a->center->y + a_ref_height / 2 ||
+           b->center->y + b_ref_height / 2 < a->center->y - a_ref_height / 2);
 }
 

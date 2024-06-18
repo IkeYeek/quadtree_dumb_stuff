@@ -29,10 +29,10 @@ void vector_add(struct Vector* v, void* e) {
 }
 
 void* vector_get(struct Vector* v, int idx) {
-  if (idx > 0 && idx < v->members) {
+  if (idx >= 0 && idx < v->members) {
     return v->elems[idx];
   } else {
-    fprintf(stderr, "trying to access illegal index in vector_get\n");
+    fprintf(stderr, "trying to access illegal index in vector_get (idx: %d, size: %d)\n", idx, v->members);
     exit(1);
   }
 }

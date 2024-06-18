@@ -1,3 +1,9 @@
+terrain_destruction_run_dbg: terrain_destruction
+	gdb targets/terrain_destruction
+terrain_destruction_run: terrain_destruction
+	targets/terrain_destruction
+terrain_destruction:
+	gcc terrain_destruction.c quadtree.c vector.c -o targets/terrain_destruction -lncurses -g -lm
 simple_graph_run: simple_graph
 	targets/simple_graph
 simple_graph:
