@@ -2,6 +2,31 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "quadtree.h"
+void draw_bounding_boxes(struct QuadTree* q) {
+    if (q == NULL) { return; }
+
+    struct Partition* boundary = q->boundary;
+    int start_x = boundary->center->x - boundary->width / 2;
+    int start_y = boundary->center->y - boundary->height / 2;
+    int end_x = boundary->center->x + boundary->width / 2;
+    int end_y = boundary->center->y + boundary->height / 2;
+    
+
+    for (int x = start_x; x <= end_x; x++) {
+        mvaddch(start_y, x, '-');
+        mvaddch(end_y, x, '-');
+    }
+
+    for (int y = start_y; y <= end_y; y++) {
+        mvaddch(y, start_x, '|');
+        mvaddch(y, end_x, '|');
+    }
+
+    draw_bounding_boxes(q->ne);
+    draw_bounding_boxes(q->nw);
+    draw_bounding_boxes(q->se);
+    draw_bounding_boxes(q->sw);
+}
 
 void init_ncurses() {
   initscr();
@@ -26,7 +51,7 @@ void draw_rec(struct QuadTree* q) {
 }
 
 void draw(struct QuadTree* q) {
-  clear();
+  //clear();
   draw_rec(q);
 }
 
@@ -36,6 +61,10 @@ void simple_graph(struct QuadTree* qt) {
   bool running = true;
   mousemask(BUTTON1_CLICKED, NULL);
 while(running) {
+    clear();
+    draw_bounding_boxes(qt);
+    draw(qt);
+
     ch = getch();
     switch (ch) {
       case KEY_F(1):
@@ -56,7 +85,6 @@ while(running) {
         printw("%d", ch);
       break;
     }
-    draw(qt);
   }
 }
 

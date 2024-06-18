@@ -29,10 +29,16 @@ struct Partition* create_partition(struct Point* pt, int width, int height) {
 }
 
 bool partition_contains(struct Partition* part, struct Point* pt) {
-  return pt->x >= part->center->x - part->width / 2 &&
-    pt->x < part->center->x + part->width / 2 &&
-    pt->y >= part->center->y - part->height / 2 &&
-    pt->y < part->center->y + part->height / 2;
+  // used to make sure (width||height)/2 != 0 but 1
+  int ref_width = part->width;
+  if (ref_width == 1) ref_width += 1;
+  int ref_height = part->height;
+  if(ref_height == 1) ref_height += 1;
+
+  return pt->x >= part->center->x - ref_width / 2 &&
+    pt->x <= part->center->x + ref_width / 2 &&
+    pt->y >= part->center->y - ref_height / 2 &&
+    pt->y <= part->center->y + ref_height / 2;
 }
 
 struct QuadTree* create_quadtree(struct Partition* boundary, int capacity) {
@@ -87,6 +93,9 @@ void subdivide_quadtree(struct QuadTree* q) {
   int boundary_h = q->boundary->height;
   int boundary_x = q->boundary->center->x;
   int boundary_y = q->boundary->center->y;
+  
+  if (boundary_w & 1) boundary_w += 1;
+  if (boundary_h & 1) boundary_h += 1;
 
   struct Point* ne_center = create_point(boundary_x - boundary_w / 4, boundary_y - boundary_h / 4);
   struct Partition* ne_part = create_partition(ne_center, boundary_w / 2, boundary_h / 2);
