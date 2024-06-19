@@ -169,10 +169,19 @@ struct Vector* query_quadtree(struct QuadTree* q, struct Partition* p) {
     }
   }
   if (q->ne != NULL) {
-    vector_merge(v, query_quadtree(q->ne, p));
-    vector_merge(v, query_quadtree(q->nw, p));
-    vector_merge(v, query_quadtree(q->se, p));
-    vector_merge(v, query_quadtree(q->sw, p));
+    struct Vector* ne_v = query_quadtree(q->ne, p);
+    struct Vector* nw_v = query_quadtree(q->nw, p);
+    struct Vector* se_v = query_quadtree(q->se, p);
+    struct Vector* sw_v = query_quadtree(q->sw, p);
+    vector_merge(v, ne_v);
+    vector_merge(v, nw_v);
+    vector_merge(v, se_v);
+    vector_merge(v, sw_v);
+
+    if (ne_v != NULL) vector_free(ne_v);
+    if (nw_v != NULL) vector_free(nw_v);
+    if (se_v != NULL) vector_free(se_v);
+    if (sw_v != NULL) vector_free(sw_v);
   }
 
   return v;
@@ -192,5 +201,35 @@ bool intersects_partition(struct Partition* a, struct Partition* b) {
            b->center->x + b_ref_width / 2 < a->center->x - a_ref_width / 2 ||
            b->center->y - b_ref_height / 2 > a->center->y + a_ref_height / 2 ||
            b->center->y + b_ref_height / 2 < a->center->y - a_ref_height / 2);
+}
+
+void partition_free(struct Partition *p) {
+  if (p != NULL) {
+    free(p->center);
+    free(p);
+  }
+}
+void free_quadtree(struct QuadTree* q) {
+  if (q != NULL) {
+    // Free the boundary partition
+    partition_free(q->boundary);
+
+    // Free the points array
+    if (q->points != NULL) {
+      for (int i = 0; i < q->members; i++) {
+        free(q->points[i]);
+      }
+      free(q->points);
+    }
+
+    // Recursively free the quadrants
+    if (q->ne != NULL) free_quadtree(q->ne);
+    if (q->nw != NULL) free_quadtree(q->nw);
+    if (q->se != NULL) free_quadtree(q->se);
+    if (q->sw != NULL) free_quadtree(q->sw);
+
+    // Free the QuadTree itself
+    free(q);
+  }
 }
 

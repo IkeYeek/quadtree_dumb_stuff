@@ -28,10 +28,8 @@ struct QuadTree {
 struct Point* create_point(int x, int y);
 // creates a partition from a center point, a width and a length
 struct Partition* create_partition(struct Point* p, int width, int height);
-
 // check if a point coords is contained inside a partition
 bool contains_partition(struct Partition* part, struct Point* pt);
-
 // creates a quadtree from a partition with a defined capacity
 struct QuadTree* create_quadtree(struct Partition* boundary, int capacity);
 // inserts a point inside a quadtree
@@ -46,4 +44,6 @@ bool contains_quadtree(struct QuadTree* q, struct Point* p);
 struct Vector* query_quadtree(struct QuadTree* q, struct Partition* p);
 // checks if two partitions intersects eachother
 bool intersects_partition(struct Partition* a, struct Partition *b);
+void partition_free(struct Partition *p);
+void free_quadtree(struct QuadTree* q);
 #endif

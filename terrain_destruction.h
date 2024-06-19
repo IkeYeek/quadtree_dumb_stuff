@@ -18,5 +18,5 @@ struct Terrain {
 };
 
 void draw_terrain(struct Terrain* t);
-
+void free_terrain(struct Terrain* t);
 #endif

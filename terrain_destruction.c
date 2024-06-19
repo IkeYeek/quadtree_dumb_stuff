@@ -36,6 +36,7 @@ void draw_terrain(struct Terrain* t) {
             fprintf(stderr, "Error: waddch failed at (%d, %d).\n", y, x);
         }
     }
+    vector_free(pxls);
 
     int prefresh_result = prefresh(t->game_pad, t->pminrow, t->pmincol, 3, 0, LINES - 1, COLS - 1);
     if (prefresh_result == ERR) {
@@ -43,6 +44,12 @@ void draw_terrain(struct Terrain* t) {
     }
 }
 
+void free_terrain(struct Terrain* t) {
+  delwin(t->infos_window);
+  delwin(t->infos_window_container);
+  delwin(t->game_pad);
+  free_quadtree(t->terrain_quadtree);
+}
 
 void _fille_whole_terrain(struct Terrain* t) {
   for (int y = 0; y < t->terrain_quadtree->boundary->height; y += 1) {
@@ -65,6 +72,8 @@ void _explode(struct Terrain* t, struct Point* center, int radius) {
       remove_quadtree(t->terrain_quadtree, current_point);
     }
   }
+  vector_free(points_inside_explosion_partition);
+  partition_free(explosion_partition); 
 }
 
 
@@ -75,6 +84,7 @@ void _expose_partition(struct Terrain* t, struct Partition* p) {
     move(p->y, p->x);
     addch('O');
   }
+  vector_free(pts);
 }
 
 void loop(struct Terrain* terrain) {
@@ -154,5 +164,7 @@ int main() {
   _fille_whole_terrain(&t);
   loop(&t);
   endwin();
+  free_terrain(&t);
+  
   return EXIT_SUCCESS;
 }

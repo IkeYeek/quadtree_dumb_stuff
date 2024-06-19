@@ -63,3 +63,7 @@ void vector_merge(struct Vector* to, struct Vector* from) {
   to->members += from->members;
 }
 
+void vector_free(struct Vector* v) {
+  free(v->elems);
+  free(v);
+}
